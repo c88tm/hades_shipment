@@ -10,10 +10,11 @@ a0=7
 a1=8
 N = 9#planet num
 
-cargo = [
-        [n1,c0],#n0
+capacity = 4
+shipments = [
+        [n1],#n0
         [n0],#n1
-        [n1],#c0
+        [n1,n0,c1,c2,j0,w0,a0,a1],#c0
         [],#c1
         [],#c2
         [],#j0
@@ -21,25 +22,35 @@ cargo = [
         [],#a0
         [],#a1
         ]
-def calscore(path):
+total_shipments = sum([len(i) for i in shipments])
+def calScore(path):
     path = copy.copy(path)
-    car = copy.deepcopy(cargo)
-    shipment = [c0,c0,c1,c2]
+    sm = copy.deepcopy(shipments)
+    cargo = []
     score = 0
     cost = 0
+    #print('cargo ',cargo)
     for p in range(len(path)):
+        cur_p = path[p]
         #unload
-        for i,s in reversed(list(enumerate(shipment))):
-            if s == p:
-                shipment.pop(i)
-        print('at',p,shipment)
+        for i,s in reversed(list(enumerate(cargo))):
+            if s == cur_p:
+                cargo.pop(i)
+                score +=1
         #load
-        pass
+        for i in range(p+1,len(path)):
+            tmp = path[i]
+            if len(cargo) >= capacity: break
+            while tmp in sm[cur_p]:
+                sm[cur_p].remove(tmp)
+                cargo.append(tmp)
+        #print('At ',cur_p,cargo)
     return (score,cost)
 def IDAstar(path,length):
-    print(path)
-    tmp = calscore(path)
+    #print(path)
+    tmp = calScore(path)
     ans = (tmp[0],tmp[1],path)#score,cost,path
+    if ans[0] >= total_shipments: return ans
     if len(path) >= length:return ans
     for i in range(N):
         tmp = IDAstar(path+[i],length)
@@ -47,6 +58,9 @@ def IDAstar(path,length):
             ans = tmp
     return ans
 if __name__ == '__main__':
-    path = [c0,c1,c2]
-    sol = IDAstar(path,3)
+    path = [c0]
+    print(total_shipments)
+    for i in range(10):
+        sol = IDAstar(path,i)
+        if sol[0] >= total_shipments:break
     print(sol)
