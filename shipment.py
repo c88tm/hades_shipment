@@ -12,19 +12,26 @@ N = 9#planet num
 
 capacity = 4
 shipments = [
-        [n1],#n0
-        [n0],#n1
-        [n1,n0,c1,c2,j0,w0,a0,a1],#c0
-        [],#c1
-        [],#c2
-        [],#j0
-        [],#w0
-        [],#a0
-        [],#a1
+        [n1,n1,c0,c0,c0,c1,c1,c1,c1,c1,c2,c2,c2,c2,a1,a1,a0],#n0
+        [n0,n0,n0,c0,c0,c0,c1,j0,j0,c2,w0,w0,w0,w0,a1,a0,a0,a0],#n1
+        [c1,c1,c1,c2,c2,a1,a1,j0,n0,w0],#c0
+        [c2,c0,c0,c0,a1,j0,n1,w0,w0,w0],#c1
+        [c1,c0,a0,a0,a1,n1,n1,n1,n1,n1],#c2
+        [c2,c2,c2,c0,c1,c1,c1,n1,n1,n1,n0,n0,n0,a1],#j0
+        [n1,n1,j0,n0,n0,c0,c0,c0,c2,c2,c2,c1,c1,c1,a0,a0,a0,a0,a0,a1,a1,a1],#w0
+        [c1,c1,c1,c1,c2,c2,c2,c0,c0,c0,j0,j0,n0,n0,w0],#a0
+        [a0,a0,c1,c1,c0,c0,c2,n1,n1,n0,j0,j0,j0,w0,w0],#a1
         ]
 total_shipments = sum([len(i) for i in shipments])
+def cmp_score(sc1,sc2):
+    if(sc1[0]>sc2[0]):return 1
+    if(sc1[0]<sc2[0]):return -1
+    if(sc1[1]<sc2[1]):return 1
+    if(sc1[1]>sc2[1]):return -1
+    if(len(sc1[2])<len(sc2[2])):return 1
+    if(len(sc1[2])>len(sc2[2])):return -1
+    return 0
 def calScore(path):
-    path = copy.copy(path)
     sm = copy.deepcopy(shipments)
     cargo = []
     score = 0
@@ -39,28 +46,40 @@ def calScore(path):
                 score +=1
         #load
         for i in range(p+1,len(path)):
-            tmp = path[i]
+            load_p = path[i]
             if len(cargo) >= capacity: break
-            while tmp in sm[cur_p]:
-                sm[cur_p].remove(tmp)
-                cargo.append(tmp)
+            for ind,s in reversed(list(enumerate(sm[cur_p]))):
+                if s == load_p:
+                    sm[cur_p].pop(ind)
+                    cargo.append(load_p)
+                    if len(cargo) >= capacity: break
         #print('At ',cur_p,cargo)
-    return (score,cost)
-def IDAstar(path,length):
+    return (score,cost,path)
+def IDAstar(path, length, pre_sc, cut):
     #print(path)
-    tmp = calScore(path)
-    ans = (tmp[0],tmp[1],path)#score,cost,path
-    if ans[0] >= total_shipments: return ans
-    if len(path) >= length:return ans
+    sc = calScore(path)#score,cost,path
+    #cut if not improve or too far
+    if cmp_score(sc,pre_sc)<0:
+        cut += 1
+        if cut>2:
+            return sc
+    else:
+        cut = 0
+    if sc[0] >= total_shipments: return sc
+    if len(path) >= length: return sc
+    #iter
     for i in range(N):
-        tmp = IDAstar(path+[i],length)
-        if tmp[0]>ans[0]:
-            ans = tmp
-    return ans
+        if len(path)>0 and i == path[-1]:continue
+        tmp = IDAstar(path+[i], length, sc, cut)
+        if cmp_score(tmp,sc)>0:sc = tmp
+    return sc
 if __name__ == '__main__':
-    path = [c0]
+    path = []
     print(total_shipments)
-    for i in range(10):
-        sol = IDAstar(path,i)
+    for i in range(1,50):
+        sol = IDAstar(path, i, (0,0,path), 0)
+        if(len(sol[2]))>4:
+            path = sol[2][:-4]
         if sol[0] >= total_shipments:break
-    print(sol)
+        print('step: %2d done:%3d/%3d'%(i,sol[0],total_shipments))
+        print(sol[2])
