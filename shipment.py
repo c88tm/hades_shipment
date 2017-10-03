@@ -10,6 +10,18 @@ a0=7
 a1=8
 N = 9#planet num
 
+dist = [
+        [0,0,564,564,564,927,0,884,884],#n0
+        [0,0,564,564,564,927,0,884,884],#n1
+        [564,564,0,0,0,508,927,400,400],#c0
+        [564,564,0,0,0,508,927,400,400],#c1
+        [564,564,0,0,0,508,927,400,400],#c2
+        [927,927,508,508,508,0,607,874,874],#j0
+        [0,0,927,927,927,607,0,1526,1526],#w0
+        [884,84,400,400,400,874,1526,0,0],#a0
+        [884,84,400,400,400,874,1526,0,0],#a1
+        ]
+
 capacity = 4
 shipments = [
         [n1,n1,c0,c0,c0,c1,c1,c1,c1,c1,c2,c2,c2,c2,a1,a1,a0],#n0
@@ -38,6 +50,7 @@ def calScore(path):
     cost = 0
     #print('cargo ',cargo)
     for p in range(len(path)):
+        if p!=0:cost+=dist[path[p-1]][path[p]]
         cur_p = path[p]
         #unload
         for i,s in reversed(list(enumerate(cargo))):
@@ -76,7 +89,7 @@ def IDAstar(path, length, pre_sc, cut):
 if __name__ == '__main__':
     path = []
     print(total_shipments)
-    for i in range(1,50):
+    for i in range(1,70):
         sol = IDAstar(path, i, (0,0,path), 0)
         if(len(sol[2]))>4:
             path = sol[2][:-4]
